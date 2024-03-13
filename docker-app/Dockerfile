@@ -1,6 +1,6 @@
 # Fix base image version
-FROM python:3.7-alpine3.10 as builder
-#FROM python:3.13.0a4-alpine3.19 as builder
+#FROM python:3.7-alpine3.10 as builder
+FROM python:3.13.0a4-alpine3.19 as builder
 
 # Set tools versions to latest official release
 ENV YQ_VERSION=v4.40.2
