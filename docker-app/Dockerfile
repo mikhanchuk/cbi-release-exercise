@@ -1,19 +1,36 @@
-FROM python:alpine3.10 as builder
+# Fix base image version
+FROM python:3.7-alpine3.10 as builder
+#FROM python:3.13.0a4-alpine3.19 as builder
 
-# Set tools versions
-ENV YQ_VERSION=latest
+# Set tools versions to latest official release
+ENV YQ_VERSION=v4.40.2
 
-RUN apk update \
- && apk add --no-cache git unzip groff build-base libffi-dev cmake
-
-# Install required packages
-RUN apk update \
- && apk add --no-cache jq curl git openssh gnupg unzip py3-pip
-
-# Install python packages
-RUN pip install deepdiff tabulate gitpython
+# Install required packages in a single layer
+RUN apk add --no-cache \
+        git \
+        unzip \
+        groff \
+        build-base \
+        libffi-dev \
+        cmake \
+        jq \
+        curl \
+        git \
+        openssh \
+        gnupg \
+#       py3-pip \
+    && pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir deepdiff tabulate gitpython
 
 # Install yq
-RUN curl -LO "https://github.com/mikefarah/yq/releases/download/$YQ_VERSION/yq_linux_amd64" \
- && chmod u+x yq_linux_amd64  \
- && mv yq_linux_amd64 /usr/local/bin/yq \
+RUN curl -LO "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" \
+    && chmod o+x yq_linux_amd64 \
+    && mkdir /usr/local/bin/yq \
+    && mv yq_linux_amd64 /usr/local/bin/yq
+
+# Create a non-root user
+RUN adduser -D user1
+USER user1
+
+# Set the working directory
+# WORKDIR /app
