@@ -1,0 +1,52 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_IMAGE_NAME: cbi-release-exercise:1.1
+
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8==7.0
+
+      - name: Run Flake8
+        run: flake8 .
+
+      - name: Run Hadolint
+        continue-on-error: true
+        run: docker run --rm -i hadolint/hadolint < ./docker-app/Dockerfile
+  
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Install trivy tool
+      run: |
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update
+        sudo apt-get install trivy
+        
+    - name: Scan yq repository for vulnerabilities
+      run: trivy repo --vuln-type library https://github.com/mikefarah/yq
+
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: |
+        docker build . -f ./docker-app/Dockerfile -t $BUILD_IMAGE_NAME
+
+    - name: Scan docker container image for vulnerabilities
+      run: trivy image --exit-code 1 --severity HIGH,CRITICAL --vuln-type os docker.io/library/$BUILD_IMAGE_NAME --format json
