@@ -49,4 +49,4 @@ jobs:
         docker build . -f ./docker-app/Dockerfile -t $BUILD_IMAGE_NAME
 
     - name: Scan docker container image for vulnerabilities
-      run: trivy image --exit-code 1 --severity HIGH,CRITICAL --vuln-type os docker.io/library/$BUILD_IMAGE_NAME --format json
+      run: trivy image --exit-code 1 --severity HIGH,CRITICAL --vuln-type os docker.io/library/$BUILD_IMAGE_NAME
