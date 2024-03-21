@@ -33,4 +33,4 @@ RUN adduser -D user1
 USER user1
 
 # Set the working directory
-# WORKDIR /app
+WORKDIR /app
